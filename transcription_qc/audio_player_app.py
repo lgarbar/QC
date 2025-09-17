@@ -408,6 +408,20 @@ class AudioPlayerApp:
         duration = len(audio_data) / sample_rate
         return duration * 1000
 
+    def update_cursor_position(self, sample_rate, total_samples):
+        start_time_sec = self.start_time / 1000
+        end_time_sec = self.end_time / 1000
+        duration_sec = end_time_sec - start_time_sec
+
+        start_ticks = time.time()
+        while time.time() - start_ticks < duration_sec:
+            elapsed_sec = time.time() - start_ticks
+            self.cursor_position = start_time_sec + elapsed_sec
+            self.red_cursor_line.set_xdata([self.cursor_position, self.cursor_position])
+            self.canvas.draw()
+            self.root.update()
+            time.sleep(0.01)  # small delay to animate smoothly
+
     def play_full_audio(self):
         try:
             sample_rate, audio_data = wavfile.read(self.audio_file_path)
@@ -419,14 +433,22 @@ class AudioPlayerApp:
             self.end_time = len(audio_data) / sample_rate * 1000
             self.cursor_position = 0
 
-            # Play asynchronously (returns immediately)
+            # Play asynchronously
             sd.play(audio_data, sample_rate)
-
-            # Kick off cursor update loop
-            self.update_cursor_position(sample_rate, len(audio_data))
-
+            
+            # Start cursor animation
+            self.animate_cursor(self.start_time / 1000, self.end_time / 1000)
+            
         except Exception as e:
             print(f"Error playing full audio: {e}")
+
+    def animate_cursor(self, start_sec, end_sec):
+        step = 0.01  # seconds
+        if self.cursor_position < end_sec:
+            self.red_cursor_line.set_xdata([self.cursor_position, self.cursor_position])
+            self.canvas.draw()
+            self.cursor_position += step
+            self.root.after(int(step*1000), lambda: self.animate_cursor(start_sec, end_sec))
 
     def play_audio_segment(self):
         try:
@@ -440,8 +462,10 @@ class AudioPlayerApp:
             segment = audio_data[start_sample:end_sample]
 
             self.cursor_position = self.start_time / 1000
+
             sd.play(segment, sample_rate)
-            sd.wait()
+            self.animate_cursor(self.start_time / 1000, self.end_time / 1000)
+            
         except Exception as e:
             print(f"Error playing audio segment: {e}")
 
