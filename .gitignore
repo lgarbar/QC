@@ -1,0 +1,20 @@
+# OS/user
+.DS_Store
+.Rhistory
+
+# Python
+__pycache__/
+*.pyc
+.pytest_cache/
+.venv/
+venv/
+
+# Jupyter
+.ipynb_checkpoints/
+
+# Build/dist
+dist/
+build/
+*.egg-info/
+
+

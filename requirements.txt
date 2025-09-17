@@ -1,0 +1,9 @@
+pandas
+numpy
+matplotlib
+pygame
+sounddevice
+scipy
+Pillow
+PyQt5
+
